@@ -12,6 +12,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.jupiter.params.provider.ValueSource;
 
 import java.util.List;
 import java.util.stream.Stream;
@@ -86,6 +87,59 @@ class CarServiceTest {
         assertEquals("make cannot be blank", result.getMessage());
     }
 
+    @Test
+    void shouldCorretlyUpdateCar(){
+        Car car = new Car(null, "volkswagen", "golf", "123",
+                CarClass.STANDARD, CarStatus.AVAILABLE);
+
+        Car createdCar = carService.createCar(car);
+
+        Car result = carService.updateModel(createdCar.getId(), "passat");
+
+        assertEquals("passat", result.getModel());
+
+        assertNotEquals("golf", result.getModel());
+
+    }
+
+    @Test
+    void shouldThrowExceptionWhenUpdatingCarThatDoesNotExist(){
+       assertThrows(CarNotFoundException.class, ()->carService.updateModel(1, "x"));
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"", " "})
+    void shouldThrowValidationExceptionWhenUpdatingCarWithInvalidModel(String newModel){
+        assertThrows(ValidationException.class, ()->carService.updateModel(1, newModel));
+    }
+
+    @Test
+    void shouldReturnEmptyListAvailableCars(){
+        List<Car> result = assertDoesNotThrow(() -> carService.getAvailableCars());
+
+        assertTrue(result.isEmpty());
+    }
+
+    @Test
+    void shouldReturnAvailableCars(){
+        Car car = new Car(null, "volkswagen", "golf", "123",
+                CarClass.STANDARD, CarStatus.AVAILABLE);
+
+        Car car2 = new Car(null, "volkswagen", "passat", "123",
+                CarClass.STANDARD, CarStatus.RENTED);
+
+        carService.createCar(car);
+        carService.createCar(car2);
+
+        List<Car> result = assertDoesNotThrow(() -> carService.getAvailableCars());
+
+        assertFalse(result.isEmpty());
+
+        assertEquals(1, result.size());
+
+        assertTrue(result.stream().allMatch( it -> it.getStatus().equals(CarStatus.AVAILABLE)));
+
+    }
 
     public static Stream<Arguments> providesInvalidMakeValues() {
         return Stream.of(
@@ -94,5 +148,6 @@ class CarServiceTest {
                 null
         );
     }
+
 
 }

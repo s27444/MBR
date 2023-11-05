@@ -19,4 +19,6 @@ public class Car {
 
     private CarStatus status;
 
+    private Double dailyRate;
+
 }
