@@ -16,7 +16,7 @@ public class CarService {
     private final CarRepository carRepository;
 
     public Car createCar(Car car) {
-        if (car.getMake().isBlank()){
+        if (car.getMake() == null || car.getMake().isBlank()){
             throw new ValidationException("cannot be blank", "make");
         }
 
